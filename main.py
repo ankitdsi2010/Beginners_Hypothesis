@@ -1,13 +1,17 @@
+# Importing the required things
+
 # Importing the required libraries
 import pandas as pd
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Nadam
 
 # Importing the Datasets
 df = pd.read_csv('train.csv')
 df_p = pd.read_csv('test.csv')
+
+# Data Preprocessing
 
 # Swapping the price and price category columns
 cols = list(df.columns)
@@ -41,45 +45,60 @@ X = X_m[0:142981, :]
 Y = Y_m[0:142981, ]
 X_p = X_m[142981:204258, :]
 
+# Building the model
+
 # Initialising the ANN
 model = Sequential()
 
 # Adding the input layer and the first hidden layer
-model.add(Dense(1000, activation='relu', input_shape=(1614,)))
+model.add(Dense(640, activation='relu', input_shape=(1614,)))
 
 # Adding the second hidden layer
-model.add(Dense(900, activation='relu'))
+model.add(Dense(403, activation='relu'))
 
 # Adding the third hidden layer
-model.add(Dense(800, activation='relu'))
+model.add(Dense(254, activation='relu'))
 
 # Adding the fourth hidden layer
-model.add(Dense(700, activation='relu'))
+model.add(Dense(101, activation='relu'))
 
 # Adding the fifth hidden layer
-model.add(Dense(600, activation='relu'))
+model.add(Dense(40, activation='relu'))
 
 # Adding the sixth hidden layer
-model.add(Dense(500, activation='relu'))
+model.add(Dense(15, activation='relu'))
 
 # Adding the seventh hidden layer
-model.add(Dense(200, activation='relu'))
+model.add(Dense(6, activation='relu'))
 
 # Adding the output layer
 model.add(Dense(1, activation='linear'))
 
 # Compiling the ANN 
-opt = Adam(lr = 0.001)
+opt = Nadam(lr = 0.001)
 model.compile(optimizer=opt, loss='mean_squared_error')
 
-# Fitting the ANN to the trianing data
-result = model.fit(X, Y, epochs = 5, validation_split = 0.22)
+# Fitting the ANN to the training data
+result = model.fit(X, Y, epochs = 10, validation_split = 0.23)
+
+# Predicting and preparing the output
 
 # Predicting the results for the test data
 Y_pred= model.predict(X_p)
 
+# Preparing the Price Dataframe
+Price_d = pd.DataFrame(Y_pred)
+Price_d.columns = ['Price']
 
+# Preparing the TID Dtaframe
+Id_f = pd.DataFrame(df_p.iloc[:, 0].values)
+Id_f.columns = ['TID']
 
+# Merging the two dataframes
+result_set = pd.concat(objs=[Id_f, Price_d], axis=1, sort=False)
 
+# Sorting the dataframe in ascending order according to TID
+Final_result_set = result_set.sort_values('TID', axis = 0, ascending = True, inplace = False)
 
-
+# Exporting the dataframe
+Final_result_set.to_csv('Test_Final.csv', index=False)
